@@ -7,3 +7,5 @@ setuptools
 black
 pre-commit
 tox
+pytest
+contract-deploy-tools
