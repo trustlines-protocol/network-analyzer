@@ -1,12 +1,19 @@
 import json
+import time
 from collections import defaultdict
 from typing import Dict
 
 import pkg_resources
+import requests
 
-from network_analyzer.csv_export import export_bridge_information_as_csv
+from network_analyzer.csv_export import (
+    export_bridge_information,
+    export_currency_network_information,
+)
+from network_analyzer.netwrok_graph import CurrencyNetworkGraph
 
 HOME_BRIDGE_CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000401"
+RELAY_API_URL = "https://staging.testnet.trustlines.network/api/v1"
 
 
 def load_contracts_json(path="contracts.json") -> Dict:
@@ -26,6 +33,8 @@ class Analyzer:
             bytecode=self.contracts_dict["HomeBridge"]["bytecode"],
             address=HOME_BRIDGE_CONTRACT_ADDRESS,
         )
+
+        self.graphs: Dict[str, CurrencyNetworkGraph] = {}
 
     def analyze_bridge_transfers(self):
 
@@ -54,9 +63,111 @@ class Analyzer:
             ):
                 pending_transfers[confirmation.transferHash] = confirmation
 
-        export_bridge_information_as_csv(
+        export_bridge_information(
             completed_transfers=completed_transfers,
             value_transferred=value_transferred,
             pending_transfers=pending_transfers,
             output_path=self.output_path,
         )
+
+    def analyze_networks(self):
+        networks_list = requests.get(f"{RELAY_API_URL}/networks",).json()
+        networks_infos_dictionaries = []
+
+        for network in networks_list:
+            network_address = network["address"]
+
+            network_graph = CurrencyNetworkGraph(
+                capacity_imbalance_fee_divisor=100,  # TODO: The endpoint of the relay does not return the actual value
+                default_interest_rate=network["defaultInterestRate"],
+                prevent_mediator_interests=network["preventMediatorInterests"],
+            )
+            self.graphs[network_address] = network_graph
+
+            trustlines = requests.get(
+                f"{RELAY_API_URL}/networks/{network_address}/trustlines"
+            ).json()
+            network_graph.generate_graph(trustlines)
+
+            transfer_events = requests.get(
+                f"{RELAY_API_URL}/networks/{network_address}/events?type=Transfer"
+            ).json()
+
+            info_dictionary = {
+                "Name": network["name"],
+                "Address": network_address,
+                "Number of users": network["numUsers"],
+                "Average number of people connected within one hop": network_graph.average_degree_of_power(
+                    1
+                ),
+                "Average number of people connected within two hops": network_graph.average_degree_of_power(
+                    2
+                ),
+                "Average number of people connected within three hops": network_graph.average_degree_of_power(
+                    3
+                ),
+                "Average number of people connected within four hops": network_graph.average_degree_of_power(
+                    4
+                ),
+                "Average number of people connected within five hops": network_graph.average_degree_of_power(
+                    5
+                ),
+                "Average number of people connected within six hops": network_graph.average_degree_of_power(
+                    6
+                ),
+                "Minimal number of trustlines of a user": network_graph.calculate_min_degree(),
+                "Maximal number of trustlines of a user": network_graph.calculate_max_degree(),
+                "Number of users with 3 or more trustlines": network_graph.number_of_vertex_of_degree_at_least(
+                    3
+                ),
+                "Total number of transfers": len(transfer_events),
+                "Number of different transfer initiators": number_of_transfer_initiators(
+                    transfer_events
+                ),
+                "Number of transfers last month": number_of_transfers_last_month(
+                    transfer_events
+                ),
+                "Average value transferred": average_value_transferred(transfer_events)
+                / 10 ** network["decimals"],
+            }
+            networks_infos_dictionaries.append(info_dictionary)
+
+        export_currency_network_information(
+            information_dictionaries=networks_infos_dictionaries
+        )
+
+
+def number_of_transfer_initiators(transfer_events):
+    different_initiators = set()
+    for transfer_event in transfer_events:
+        different_initiators.add(transfer_event["from"])
+    return len(different_initiators)
+
+
+def number_of_transfers_in_time_window(transfer_events, start_time, end_time):
+
+    number = 0
+    for transfer_event in transfer_events:
+        if (
+            transfer_event["timestamp"] >= start_time
+            and transfer_event["timestamp"] <= end_time
+        ):
+            number += 1
+    return number
+
+
+def number_of_transfers_last_month(transfer_events):
+    current_time = time.time()
+    one_month = 30 * 24 * 3600
+    return number_of_transfers_in_time_window(
+        transfer_events, current_time - one_month, current_time
+    )
+
+
+def average_value_transferred(transfer_events):
+    if len(transfer_events) == 0:
+        return 0
+    total_value_transferred = 0
+    for transfer_event in transfer_events:
+        total_value_transferred += int(transfer_event["amount"])
+    return total_value_transferred / len(transfer_events)
