@@ -5,6 +5,7 @@ from typing import Dict
 
 import pkg_resources
 import requests
+from web3 import Web3
 
 from network_analyzer.csv_export import (
     export_bridge_information,
@@ -23,10 +24,11 @@ def load_contracts_json(path="contracts.json") -> Dict:
 
 
 class Analyzer:
-    def __init__(self, web3, output_path):
-        self.web3 = web3
+    def __init__(self, jsonrpc, output_path, relay_api_url):
+        self.web3 = Web3(Web3.HTTPProvider(jsonrpc, request_kwargs={"timeout": 180}))
         self.output_path = output_path
         self.contracts_dict = load_contracts_json()
+        self.relay_api_url = relay_api_url
 
         self.home_bridge_contract = self.web3.eth.contract(
             abi=self.contracts_dict["HomeBridge"]["abi"],
@@ -71,7 +73,7 @@ class Analyzer:
         )
 
     def analyze_networks(self):
-        networks_list = requests.get(f"{RELAY_API_URL}/networks",).json()
+        networks_list = self.request_relay_api("networks")
         networks_infos_dictionaries = []
 
         for network in networks_list:
@@ -84,14 +86,14 @@ class Analyzer:
             )
             self.graphs[network_address] = network_graph
 
-            trustlines = requests.get(
-                f"{RELAY_API_URL}/networks/{network_address}/trustlines"
-            ).json()
+            trustlines = self.request_relay_api(
+                f"networks/{network_address}/trustlines"
+            )
             network_graph.generate_graph(trustlines)
 
-            transfer_events = requests.get(
-                f"{RELAY_API_URL}/networks/{network_address}/events?type=Transfer"
-            ).json()
+            transfer_events = self.request_relay_api(
+                f"networks/{network_address}/events?type=Transfer"
+            )
 
             info_dictionary = {
                 "Name": network["name"],
@@ -135,6 +137,9 @@ class Analyzer:
         export_currency_network_information(
             information_dictionaries=networks_infos_dictionaries
         )
+
+    def request_relay_api(self, endpoint):
+        return requests.get(self.relay_api_url + "/" + endpoint).json()
 
 
 def number_of_transfer_initiators(transfer_events):
