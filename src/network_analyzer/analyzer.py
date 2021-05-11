@@ -3,6 +3,7 @@ import time
 from collections import defaultdict
 from typing import Dict
 
+import click
 import pkg_resources
 import requests
 from web3 import Web3
@@ -14,7 +15,7 @@ from network_analyzer.csv_export import (
 from network_analyzer.netwrok_graph import CurrencyNetworkGraph
 
 HOME_BRIDGE_CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000401"
-RELAY_API_URL = "https://staging.testnet.trustlines.network/api/v1"
+IDENTITY_PROXY_FACTORY_ADDRESS = "0x43e7ed7F5bcc0beBE8758118fae8609607CD874f"
 
 
 def load_contracts_json(path="contracts.json") -> Dict:
@@ -34,6 +35,11 @@ class Analyzer:
             abi=self.contracts_dict["HomeBridge"]["abi"],
             bytecode=self.contracts_dict["HomeBridge"]["bytecode"],
             address=HOME_BRIDGE_CONTRACT_ADDRESS,
+        )
+        self.identity_factory_contract = self.web3.eth.contract(
+            abi=self.contracts_dict["IdentityProxyFactory"]["abi"],
+            bytecode=self.contracts_dict["IdentityProxyFactory"]["bytecode"],
+            address=IDENTITY_PROXY_FACTORY_ADDRESS,
         )
 
         self.graphs: Dict[str, CurrencyNetworkGraph] = {}
@@ -98,6 +104,7 @@ class Analyzer:
             info_dictionary = {
                 "Name": network["name"],
                 "Address": network_address,
+                "Is network frozen": network["isFrozen"],
                 "Number of users": network["numUsers"],
                 "Average number of people connected within one hop": network_graph.average_degree_of_power(
                     1
@@ -140,6 +147,34 @@ class Analyzer:
 
     def request_relay_api(self, endpoint):
         return requests.get(self.relay_api_url + "/" + endpoint).json()
+
+    def analyze_dead_identities(self):
+
+        identity_addresses = set()
+        identity_deployment_events = self.identity_factory_contract.events.ProxyDeployment.getLogs(
+            fromBlock=0
+        )
+        for identity_deployment_event in identity_deployment_events:
+            identity_addresses.add(identity_deployment_event["args"]["proxyAddress"])
+
+        users_that_have_a_trustlines = set()
+        networks_list = self.request_relay_api("networks")
+        for network in networks_list:
+            network_address = network["address"]
+            trustlines = self.request_relay_api(
+                f"networks/{network_address}/trustlines"
+            )
+            for trustline in trustlines:
+                users_that_have_a_trustlines.add(trustline["user"])
+                users_that_have_a_trustlines.add(trustline["counterParty"])
+
+        identities_with_no_trustlines = (
+            identity_addresses - users_that_have_a_trustlines
+        )
+
+        click.echo(
+            f"Number of identities with no trustlines: {len(identities_with_no_trustlines)}"
+        )
 
 
 def number_of_transfer_initiators(transfer_events):

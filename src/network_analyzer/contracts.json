@@ -476,5 +476,287 @@
             "methods": {},
             "version": 1
         }
+    },
+  "IdentityProxyFactory": {
+        "abi": [
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_chainId",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "owner",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "proxyAddress",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "address",
+                        "name": "implementationAddress",
+                        "type": "address"
+                    }
+                ],
+                "name": "ProxyDeployment",
+                "type": "event"
+            },
+            {
+                "inputs": [],
+                "name": "chainId",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "bytes",
+                        "name": "initcode",
+                        "type": "bytes"
+                    },
+                    {
+                        "internalType": "address",
+                        "name": "implementation",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "signature",
+                        "type": "bytes"
+                    }
+                ],
+                "name": "deployProxy",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ],
+        "devdoc": {
+            "kind": "dev",
+            "methods": {
+                "deployProxy(bytes,address,bytes)": {
+                    "details": "Deploys a proxy contract. Checks the given signature to make sure the right implementation address is set.",
+                    "params": {
+                        "implementation": "The address of the implementation to set",
+                        "initcode": "The initcode to be executed for contract creation",
+                        "signature": "Signature of owner of the used implementation address*"
+                    }
+                }
+            },
+            "title": "Factory to create proxy contracts*",
+            "version": 1
+        },
+        "bytecode": "0x608060405234801561001057600080fd5b506040516106fb3803806106fb83398101604081905261002f91610037565b60005561004f565b600060208284031215610048578081fd5b5051919050565b61069d8061005e6000396000f3fe608060405234801561001057600080fd5b50600436106100365760003560e01c80635d7770d71461003b5780639a8a059214610050575b600080fd5b61004e6100493660046103b4565b61006e565b005b6100586101bd565b6040516100659190610617565b60405180910390f35b825183015161007e8382846101c3565b6100a35760405162461bcd60e51b815260040161009a906105ac565b60405180910390fd5b6000808551602087016000f59050803b6100bc57600080fd5b604051636bc26a1360e11b81526001600160a01b0382169063d784d426906100e890879060040161048e565b600060405180830381600087803b15801561010257600080fd5b505af1158015610116573d6000803e3d6000fd5b5050600054604051630e66b9c960e21b81526001600160a01b038516935063399ae72492506101499186916004016104c5565b600060405180830381600087803b15801561016357600080fd5b505af1158015610177573d6000803e3d6000fd5b505050507fc3fe1a776f5ba556491047930a31eb07d6ad2362716a7289f6a552dc78e29f328282866040516101ae939291906104a2565b60405180910390a15050505050565b60005481565b60405160009081906101e390601960f81b90839030908990602001610434565b60405160208183030381529060405280519060200120905060006102078285610220565b6001600160a01b03868116911614925050509392505050565b60008060008084516041146102475760405162461bcd60e51b815260040161009a90610533565b50505060208201516040830151606084015160001a601b81101561027357610270601b82610620565b90505b8060ff16601b1415801561028b57508060ff16601c14155b156102a85760405162461bcd60e51b815260040161009a9061056a565b6000600187838686604051600081526020016040526040516102cd94939291906104de565b6020604051602081039080840390855afa1580156102ef573d6000803e3d6000fd5b5050604051601f1901519150506001600160a01b0381166103225760405162461bcd60e51b815260040161009a906104fc565b935061032d92505050565b92915050565b600082601f830112610343578081fd5b813567ffffffffffffffff8082111561035e5761035e610651565b604051601f8301601f19168101602001828111828210171561038257610382610651565b604052828152848301602001861015610399578384fd5b82602086016020830137918201602001929092529392505050565b6000806000606084860312156103c8578283fd5b833567ffffffffffffffff808211156103df578485fd5b6103eb87838801610333565b9450602086013591506001600160a01b0382168214610408578384fd5b9092506040850135908082111561041d578283fd5b5061042a86828701610333565b9150509250925092565b7fff0000000000000000000000000000000000000000000000000000000000000094851681529290931660018301526bffffffffffffffffffffffff19606091821b8116600284015292901b9091166016820152602a0190565b6001600160a01b0391909116815260200190565b6001600160a01b0393841681529183166020830152909116604082015260600190565b6001600160a01b03929092168252602082015260400190565b93845260ff9290921660208401526040830152606082015260800190565b60208082526018908201527f45434453413a20696e76616c6964207369676e61747572650000000000000000604082015260600190565b6020808252601f908201527f45434453413a20696e76616c6964207369676e6174757265206c656e67746800604082015260600190565b60208082526022908201527f45434453413a20696e636f7272656374207369676e617475726520766572736960408201526137b760f11b606082015260800190565b60208082526045908201527f54686520676976656e207369676e617475726520646f6573206e6f74206d617460408201527f636820746865206f776e65722066726f6d2074686520676976656e20696e697460608201526431b7b2329760d91b608082015260a00190565b90815260200190565b600060ff821660ff84168060ff0382111561064957634e487b7160e01b83526011600452602483fd5b019392505050565b634e487b7160e01b600052604160045260246000fdfea2646970667358221220cf2735ddc68b65c348e11c38140a6a204b6799059c9c4c7927844cac5a39618464736f6c63430008000033",
+        "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100365760003560e01c80635d7770d71461003b5780639a8a059214610050575b600080fd5b61004e6100493660046103b4565b61006e565b005b6100586101bd565b6040516100659190610617565b60405180910390f35b825183015161007e8382846101c3565b6100a35760405162461bcd60e51b815260040161009a906105ac565b60405180910390fd5b6000808551602087016000f59050803b6100bc57600080fd5b604051636bc26a1360e11b81526001600160a01b0382169063d784d426906100e890879060040161048e565b600060405180830381600087803b15801561010257600080fd5b505af1158015610116573d6000803e3d6000fd5b5050600054604051630e66b9c960e21b81526001600160a01b038516935063399ae72492506101499186916004016104c5565b600060405180830381600087803b15801561016357600080fd5b505af1158015610177573d6000803e3d6000fd5b505050507fc3fe1a776f5ba556491047930a31eb07d6ad2362716a7289f6a552dc78e29f328282866040516101ae939291906104a2565b60405180910390a15050505050565b60005481565b60405160009081906101e390601960f81b90839030908990602001610434565b60405160208183030381529060405280519060200120905060006102078285610220565b6001600160a01b03868116911614925050509392505050565b60008060008084516041146102475760405162461bcd60e51b815260040161009a90610533565b50505060208201516040830151606084015160001a601b81101561027357610270601b82610620565b90505b8060ff16601b1415801561028b57508060ff16601c14155b156102a85760405162461bcd60e51b815260040161009a9061056a565b6000600187838686604051600081526020016040526040516102cd94939291906104de565b6020604051602081039080840390855afa1580156102ef573d6000803e3d6000fd5b5050604051601f1901519150506001600160a01b0381166103225760405162461bcd60e51b815260040161009a906104fc565b935061032d92505050565b92915050565b600082601f830112610343578081fd5b813567ffffffffffffffff8082111561035e5761035e610651565b604051601f8301601f19168101602001828111828210171561038257610382610651565b604052828152848301602001861015610399578384fd5b82602086016020830137918201602001929092529392505050565b6000806000606084860312156103c8578283fd5b833567ffffffffffffffff808211156103df578485fd5b6103eb87838801610333565b9450602086013591506001600160a01b0382168214610408578384fd5b9092506040850135908082111561041d578283fd5b5061042a86828701610333565b9150509250925092565b7fff0000000000000000000000000000000000000000000000000000000000000094851681529290931660018301526bffffffffffffffffffffffff19606091821b8116600284015292901b9091166016820152602a0190565b6001600160a01b0391909116815260200190565b6001600160a01b0393841681529183166020830152909116604082015260600190565b6001600160a01b03929092168252602082015260400190565b93845260ff9290921660208401526040830152606082015260800190565b60208082526018908201527f45434453413a20696e76616c6964207369676e61747572650000000000000000604082015260600190565b6020808252601f908201527f45434453413a20696e76616c6964207369676e6174757265206c656e67746800604082015260600190565b60208082526022908201527f45434453413a20696e636f7272656374207369676e617475726520766572736960408201526137b760f11b606082015260800190565b60208082526045908201527f54686520676976656e207369676e617475726520646f6573206e6f74206d617460408201527f636820746865206f776e65722066726f6d2074686520676976656e20696e697460608201526431b7b2329760d91b608082015260a00190565b90815260200190565b600060ff821660ff84168060ff0382111561064957634e487b7160e01b83526011600452602483fd5b019392505050565b634e487b7160e01b600052604160045260246000fdfea2646970667358221220cf2735ddc68b65c348e11c38140a6a204b6799059c9c4c7927844cac5a39618464736f6c63430008000033",
+        "metadata": {
+            "compiler": {
+                "version": "0.8.0+commit.c7dfd78e"
+            },
+            "language": "Solidity",
+            "output": {
+                "abi": [
+                    {
+                        "inputs": [
+                            {
+                                "internalType": "uint256",
+                                "name": "_chainId",
+                                "type": "uint256"
+                            }
+                        ],
+                        "stateMutability": "nonpayable",
+                        "type": "constructor"
+                    },
+                    {
+                        "anonymous": false,
+                        "inputs": [
+                            {
+                                "indexed": false,
+                                "internalType": "address",
+                                "name": "owner",
+                                "type": "address"
+                            },
+                            {
+                                "indexed": false,
+                                "internalType": "address",
+                                "name": "proxyAddress",
+                                "type": "address"
+                            },
+                            {
+                                "indexed": false,
+                                "internalType": "address",
+                                "name": "implementationAddress",
+                                "type": "address"
+                            }
+                        ],
+                        "name": "ProxyDeployment",
+                        "type": "event"
+                    },
+                    {
+                        "inputs": [],
+                        "name": "chainId",
+                        "outputs": [
+                            {
+                                "internalType": "uint256",
+                                "name": "",
+                                "type": "uint256"
+                            }
+                        ],
+                        "stateMutability": "view",
+                        "type": "function"
+                    },
+                    {
+                        "inputs": [
+                            {
+                                "internalType": "bytes",
+                                "name": "initcode",
+                                "type": "bytes"
+                            },
+                            {
+                                "internalType": "address",
+                                "name": "implementation",
+                                "type": "address"
+                            },
+                            {
+                                "internalType": "bytes",
+                                "name": "signature",
+                                "type": "bytes"
+                            }
+                        ],
+                        "name": "deployProxy",
+                        "outputs": [],
+                        "stateMutability": "nonpayable",
+                        "type": "function"
+                    }
+                ],
+                "devdoc": {
+                    "kind": "dev",
+                    "methods": {
+                        "deployProxy(bytes,address,bytes)": {
+                            "details": "Deploys a proxy contract. Checks the given signature to make sure the right implementation address is set.",
+                            "params": {
+                                "implementation": "The address of the implementation to set",
+                                "initcode": "The initcode to be executed for contract creation",
+                                "signature": "Signature of owner of the used implementation address*"
+                            }
+                        }
+                    },
+                    "title": "Factory to create proxy contracts*",
+                    "version": 1
+                },
+                "userdoc": {
+                    "kind": "user",
+                    "methods": {
+                        "deployProxy(bytes,address,bytes)": {
+                            "notice": "Deploys a proxy contract by executing `initcode` and set the implementation at `implementation`"
+                        }
+                    },
+                    "version": 1
+                }
+            },
+            "settings": {
+                "compilationTarget": {
+                    "contracts/identity/IdentityProxyFactory.sol": "IdentityProxyFactory"
+                },
+                "evmVersion": "petersburg",
+                "libraries": {},
+                "metadata": {
+                    "bytecodeHash": "ipfs"
+                },
+                "optimizer": {
+                    "enabled": true,
+                    "runs": 500
+                },
+                "remappings": []
+            },
+            "sources": {
+                "contracts/currency-network/DebtTracking.sol": {
+                    "keccak256": "0xaae80b07727ae9e4c82464248206639a3fbb5a52ecc73814a607d23b5d3faa16",
+                    "license": "MIT",
+                    "urls": [
+                        "bzz-raw://594f40e0b7d4bf76a73dc771e8e75c38c09910d75279f0dcc69908cab3af8235",
+                        "dweb:/ipfs/QmeLGkbD34dThLAkdwp3b7xvMUwZhVj2ZP8gFBsrGduQ9f"
+                    ]
+                },
+                "contracts/identity/Identity.sol": {
+                    "keccak256": "0x25adf0e2f98fdfab05737a002d2940fc1e61eae24ecc6e150b64250378e4b320",
+                    "license": "MIT",
+                    "urls": [
+                        "bzz-raw://6fc0eea18e655ebc2f6a3fbbe3ba8ffd7452546b09abf1a7df7ab002ef312295",
+                        "dweb:/ipfs/QmXsGx3cyUc2ESKJNKiaaBKoq7yP8z3uxvYePrfHjctBYU"
+                    ]
+                },
+                "contracts/identity/IdentityProxyFactory.sol": {
+                    "keccak256": "0xb163c3433e4a1b61dcf5a75f85d7906f7306cd88c5130b4917c6f44ab3b94a0a",
+                    "license": "MIT",
+                    "urls": [
+                        "bzz-raw://17dd22d3e54eb0a9b94f34eef0a94b956a297d316f4a55dac0da0826ec3dc900",
+                        "dweb:/ipfs/QmaSB4VV3pr1mFjYeLRt9sGYraJpa76MUTyiKxuypqTHGh"
+                    ]
+                },
+                "contracts/identity/Proxy.sol": {
+                    "keccak256": "0x3662841ae3880288f99929008f14f5f455ed942278583830cc883c9501e92863",
+                    "license": "MIT",
+                    "urls": [
+                        "bzz-raw://5ac1826595a925c5da6757c67701ea4d3615856eef10acb78483b18b76314a34",
+                        "dweb:/ipfs/QmVeniktpC5p92DkVmvRcNdTZRdizdhFVE5TNMstnV9zuc"
+                    ]
+                },
+                "contracts/identity/ProxyStorage.sol": {
+                    "keccak256": "0x80f65a6c6514e41e6df1b9142b70428d20e7107bcdf7447bf89b0c56038fd861",
+                    "license": "MIT",
+                    "urls": [
+                        "bzz-raw://e6c373b10213e846ff34ac8c4110ac6f5efd221fb9acdad392575bd91f046686",
+                        "dweb:/ipfs/QmWEhcvZXfSuEoaGoze9yBqk8Xep9xnonsMu5FjwstqW9p"
+                    ]
+                },
+                "contracts/lib/ECDSA.sol": {
+                    "keccak256": "0x74d79020626c53e7975a265a2821efb217b9b0a80e5fb8f87ad8cd8855915a6b",
+                    "license": "MIT",
+                    "urls": [
+                        "bzz-raw://bd7229efe10cc9f9dbec997f036fb880d30dbedc19cc9e71d72aa626a2907b23",
+                        "dweb:/ipfs/QmXA4gsAC8yArvRFPJXynYhZ5xoeoKiQd1VXZEx1D6Dr5D"
+                    ]
+                },
+                "contracts/lib/it_set_lib.sol": {
+                    "keccak256": "0xd041d0f8588f3f6ba1358535e121948643f7200afeed16be324900325d3ed26e",
+                    "license": "MIT",
+                    "urls": [
+                        "bzz-raw://fe2df45bb79100fa5709fbbf1b2d704443a45caa8e81eabfe274b1167370c936",
+                        "dweb:/ipfs/QmXefFzpBczJ9cHBGWd8URnd5WLzHPDgccUJfbAPY12X9W"
+                    ]
+                }
+            },
+            "version": 1
+        },
+        "userdoc": {
+            "kind": "user",
+            "methods": {
+                "deployProxy(bytes,address,bytes)": {
+                    "notice": "Deploys a proxy contract by executing `initcode` and set the implementation at `implementation`"
+                }
+            },
+            "version": 1
+        }
     }
 }

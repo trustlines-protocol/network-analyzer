@@ -36,3 +36,4 @@ def analyze(jsonrpc: str, relay_api_url: str, output_path: str):
     analyzer = Analyzer(jsonrpc, output_path, relay_api_url)
     analyzer.analyze_bridge_transfers()
     analyzer.analyze_networks()
+    analyzer.analyze_dead_identities()
