@@ -20,7 +20,7 @@ def main():
     "--relay",
     "relay_api_url",
     help="Relay API URL",
-    default="https://tlbc.relay.anyblock.tools/api/v1",
+    default="http://localhost:5000/api/v1",
     show_default=True,
     metavar="URL",
 )

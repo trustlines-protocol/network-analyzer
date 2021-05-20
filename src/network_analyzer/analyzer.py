@@ -1,6 +1,7 @@
 import json
 import time
 from collections import defaultdict
+from datetime import datetime
 from typing import Dict
 
 import click
@@ -80,7 +81,6 @@ class Analyzer:
 
     def analyze_networks(self):
         networks_list = self.request_relay_api("networks")
-        networks_infos_dictionaries = []
 
         for network in networks_list:
             network_address = network["address"]
@@ -96,57 +96,58 @@ class Analyzer:
                 f"networks/{network_address}/trustlines"
             )
             network_graph.generate_graph(trustlines)
-
             transfer_events = self.request_relay_api(
                 f"networks/{network_address}/events?type=Transfer"
             )
 
-            info_dictionary = {
-                "Name": network["name"],
-                "Address": network_address,
-                "Is network frozen": network["isFrozen"],
-                "Number of users": network["numUsers"],
-                "Average number of people connected within one hop": network_graph.average_degree_of_power(
-                    1
-                ),
-                "Average number of people connected within two hops": network_graph.average_degree_of_power(
-                    2
-                ),
-                "Average number of people connected within three hops": network_graph.average_degree_of_power(
-                    3
-                ),
-                "Average number of people connected within four hops": network_graph.average_degree_of_power(
-                    4
-                ),
-                "Average number of people connected within five hops": network_graph.average_degree_of_power(
-                    5
-                ),
-                "Average number of people connected within six hops": network_graph.average_degree_of_power(
-                    6
-                ),
-                "Minimal number of trustlines of a user": network_graph.calculate_min_degree(),
-                "Maximal number of trustlines of a user": network_graph.calculate_max_degree(),
-                "Number of users with 3 or more trustlines": network_graph.number_of_vertex_of_degree_at_least(
-                    3
-                ),
-                "Total number of transfers": len(transfer_events),
-                "Number of different transfer initiators": number_of_transfer_initiators(
-                    transfer_events
-                ),
-                "Number of transfers last month": number_of_transfers_last_month(
-                    transfer_events
-                ),
-                "Average value transferred": average_value_transferred(transfer_events)
-                / 10 ** network["decimals"],
-            }
-            networks_infos_dictionaries.append(info_dictionary)
+            info_dictionary = build_network_info_dictionary(
+                network, network_graph, transfer_events
+            )
+            user_dictionaries = self.build_user_dictionaries(network)
+            transfer_dictionaries = self.build_transfer_dictionaries(
+                network, transfer_events
+            )
 
-        export_currency_network_information(
-            information_dictionaries=networks_infos_dictionaries
-        )
+            export_currency_network_information(
+                network_information_dictionary=info_dictionary,
+                user_dictionaries=user_dictionaries,
+                transfer_dictionaries=transfer_dictionaries,
+            )
 
     def request_relay_api(self, endpoint):
         return requests.get(self.relay_api_url + "/" + endpoint).json()
+
+    def build_user_dictionaries(self, network):
+        user_lists = self.request_relay_api(f"networks/{network['address']}/users")
+        user_dictionaries = []
+        for user in user_lists:
+            user_details = self.request_relay_api(
+                f"networks/{network['address']}/users/{user}"
+            )
+            user_dictionary = {
+                "user": user,
+                "credit limits given": int(user_details["given"])
+                / 10 ** network["decimals"],
+                "credit limits received": int(user_details["received"])
+                / 10 ** network["decimals"],
+                "balance": int(user_details["balance"]) / 10 ** network["decimals"],
+            }
+            user_dictionaries.append(user_dictionary)
+        return user_dictionaries
+
+    def build_transfer_dictionaries(self, network, transfer_events):
+        transfer_dictionaries = []
+        for transfer_event in transfer_events:
+            transfer_dictionary = {
+                "transaction hash": transfer_event["transactionHash"],
+                "sender": transfer_event["from"],
+                "recipient": transfer_event["to"],
+                "amount": int(transfer_event["amount"]) / 10 ** network["decimals"],
+                "date": datetime.fromtimestamp(transfer_event["timestamp"]),
+                "time": transfer_event["timestamp"],
+            }
+            transfer_dictionaries.append(transfer_dictionary)
+        return transfer_dictionaries
 
     def analyze_dead_identities(self):
 
@@ -177,6 +178,65 @@ class Analyzer:
         )
 
 
+def build_network_info_dictionary(network, network_graph, transfer_events):
+
+    current_time = time.time()
+    one_month = 30 * 24 * 3600
+    transfer_events_last_month = filter_events_for_time_window(
+        transfer_events, current_time - one_month, current_time
+    )
+
+    return {
+        "Name": network["name"],
+        "Address": network["address"],
+        "Is network frozen": network["isFrozen"],
+        "Number of users": network["numUsers"],
+        "Average number of people connected within one hop": network_graph.average_degree_of_power(
+            1
+        ),
+        "Average number of people connected within two hops": network_graph.average_degree_of_power(
+            2
+        ),
+        "Average number of people connected within three hops": network_graph.average_degree_of_power(
+            3
+        ),
+        "Average number of people connected within four hops": network_graph.average_degree_of_power(
+            4
+        ),
+        "Average number of people connected within five hops": network_graph.average_degree_of_power(
+            5
+        ),
+        "Average number of people connected within six hops": network_graph.average_degree_of_power(
+            6
+        ),
+        "Minimal number of trustlines of a user": network_graph.calculate_min_degree(),
+        "Maximal number of trustlines of a user": network_graph.calculate_max_degree(),
+        "Number of users with 3 or more trustlines": network_graph.number_of_vertex_of_degree_at_least(
+            3
+        ),
+        "Total number of transfers": len(transfer_events),
+        "Number of transfers last month": len(transfer_events_last_month),
+        "Number of different transfer initiators": number_of_transfer_initiators(
+            transfer_events
+        ),
+        "Number of different transfer initiators last month": number_of_transfer_initiators(
+            transfer_events_last_month
+        ),
+        "Total amount transferred": total_value_transferred(transfer_events)
+        / 10 ** network["decimals"],
+        "Total amount transferred last month": total_value_transferred(
+            transfer_events_last_month
+        )
+        / 10 ** network["decimals"],
+        "Average value transferred": average_value_transferred(transfer_events)
+        / 10 ** network["decimals"],
+        "Average value transferred last month": average_value_transferred(
+            transfer_events
+        )
+        / 10 ** network["decimals"],
+    }
+
+
 def number_of_transfer_initiators(transfer_events):
     different_initiators = set()
     for transfer_event in transfer_events:
@@ -184,30 +244,23 @@ def number_of_transfer_initiators(transfer_events):
     return len(different_initiators)
 
 
-def number_of_transfers_in_time_window(transfer_events, start_time, end_time):
-
-    number = 0
+def total_value_transferred(transfer_events):
+    total_value_transferred = 0
     for transfer_event in transfer_events:
-        if (
-            transfer_event["timestamp"] >= start_time
-            and transfer_event["timestamp"] <= end_time
-        ):
-            number += 1
-    return number
-
-
-def number_of_transfers_last_month(transfer_events):
-    current_time = time.time()
-    one_month = 30 * 24 * 3600
-    return number_of_transfers_in_time_window(
-        transfer_events, current_time - one_month, current_time
-    )
+        total_value_transferred += int(transfer_event["amount"])
+    return total_value_transferred
 
 
 def average_value_transferred(transfer_events):
     if len(transfer_events) == 0:
         return 0
-    total_value_transferred = 0
-    for transfer_event in transfer_events:
-        total_value_transferred += int(transfer_event["amount"])
-    return total_value_transferred / len(transfer_events)
+    return total_value_transferred(transfer_events) / len(transfer_events)
+
+
+def filter_events_for_time_window(events, start_time, end_time):
+
+    filtered = []
+    for event in events:
+        if event["timestamp"] >= start_time and event["timestamp"] <= end_time:
+            filtered.append(event)
+    return filtered

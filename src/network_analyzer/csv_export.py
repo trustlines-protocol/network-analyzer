@@ -4,7 +4,6 @@ from typing import List
 TLC_DIVISOR = 10 ** 18
 
 OUTPUT_FILE_BRIDGE = "bridge_information.csv"
-OUTPUT_FILE_CURRENCY_NETWORK = "currency_networks.csv"
 
 
 def export_bridge_information(
@@ -60,22 +59,46 @@ def export_bridge_information(
 
 
 def export_currency_network_information(
-    *, information_dictionaries: List, output_path: str = None
+    *,
+    network_information_dictionary: dict,
+    user_dictionaries: List,
+    transfer_dictionaries: List,
+    output_path: str = None,
 ):
+    network_address = network_information_dictionary["Address"]
+    file_name = f"currency_networks-{network_address}.csv"
     if output_path is None:
-        output_path = OUTPUT_FILE_CURRENCY_NETWORK
+        output_path = file_name
     else:
-        output_path += "/" + OUTPUT_FILE_CURRENCY_NETWORK
+        output_path += "/" + file_name
 
     with open(output_path, "w+", newline="") as csvfile:
 
         writer = csv.writer(csvfile)
         writer.writerow(["Currency network infos"])
 
-        if len(information_dictionaries) != 0:
+        dict_writer = csv.DictWriter(
+            csvfile, fieldnames=network_information_dictionary.keys()
+        )
+        dict_writer.writeheader()
+        dict_writer.writerow(network_information_dictionary)
+
+        if len(user_dictionaries) >= 1:
+            writer.writerow([])
+            writer.writerow(["User list"])
             dict_writer = csv.DictWriter(
-                csvfile, fieldnames=information_dictionaries[0].keys()
+                csvfile, fieldnames=user_dictionaries[0].keys()
             )
             dict_writer.writeheader()
-            for dict in information_dictionaries:
-                dict_writer.writerow(dict)
+            for user_dictionary in user_dictionaries:
+                dict_writer.writerow(user_dictionary)
+
+        if len(transfer_dictionaries) >= 1:
+            writer.writerow([])
+            writer.writerow(["Transfer list"])
+            dict_writer = csv.DictWriter(
+                csvfile, fieldnames=transfer_dictionaries[0].keys()
+            )
+            dict_writer.writeheader()
+            for transfer_dictionary in transfer_dictionaries:
+                dict_writer.writerow(transfer_dictionary)
