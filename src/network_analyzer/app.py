@@ -5,8 +5,7 @@ from network_analyzer.analyzer import Analyzer
 # Analyzer
 csv_dir_path = None
 default_jsonrpc = "https://tlbc.rpc.anyblock.tools"
-default_relay_api_url = "https://tlbc.relay.anyblock.tools/api/v1"
-# default_relay_api_url = "http://localhost:5000/api/v1"
+default_relay_api_url = "http://localhost:5000/api/v1"
 
 # App main window
 root = tk.Tk()
