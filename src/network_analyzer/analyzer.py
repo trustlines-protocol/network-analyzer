@@ -112,6 +112,7 @@ class Analyzer:
                 network_information_dictionary=info_dictionary,
                 user_dictionaries=user_dictionaries,
                 transfer_dictionaries=transfer_dictionaries,
+                output_path=self.output_path,
             )
 
     def request_relay_api(self, endpoint):

@@ -2,7 +2,6 @@
 
 Tool around fetching and computing information on the status of currency networks as a graph and their users.
 
-
 ## Installation
 
 The network analyzer tool requires python 3.8 or up. You can install its requirements from this repository with
@@ -29,4 +28,22 @@ Options:
   --relay URL    Relay API URL  [default: http://localhost:5000/api/v1]
   --output PATH  Path of the directory to output the csv to
   --help         Show this message and exit.
+```
+
+## GUI version
+
+You can generate a GUI executable for different OS (Windows, Mac) using Python lib `PyInstaller`. `./src/network_analyzer/app.py` is a sample script for generating a simple GUI that gives you the option to choose the RPC and Relay servers, and the folder you would like the analysis files to be generated. So, easily you can follow those steps to generate an executable:
+
+```
+$ pip install pyinstaller
+$ cd src/network_analyzer
+$ pyinstaller app.py -y
+```
+
+This should generate the executable with some other files by default at `./src/network_analyzer/dist/app`, and you need then to copy `contracts.json` to `dist/app/network_analyzer/contracts.json`
+
+```
+-- bash shell
+$ mkdir ./dist/app/network_analyzer && \
+  cp contracts.json ./dist/app/network_analyzer
 ```
